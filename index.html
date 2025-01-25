@@ -1,0 +1,63 @@
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-title" content="KelimeCraft">
+    <title>DİLE YOLCULUK</title>
+    <link rel="apple-touch-icon" type="image/png" href="./src/logo.png">
+    <link rel="shortcut icon" type="image/x-icon" href="./src/logo.png">
+    <link rel="mask-icon" type="image/x-icon" href="./src/logo.png" color="#111">
+    <link rel="stylesheet" href="./src/styles.css">
+    <script>
+        // Array of images and corresponding links
+        const images = [
+            { src: './ingiliz.png', link: 'ingilizce.html' },
+            { src: './alman.png', link: './almanca/almanca.html' },
+       
+        ];
+        let currentIndex = 0;
+
+        function updateImage() {
+            const imgElement = document.getElementById('imageDisplay');
+            imgElement.src = images[currentIndex].src;
+            imgElement.onclick = function() {
+                window.location.href = images[currentIndex].link;
+            };
+        }
+
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            updateImage();
+        }
+
+        function previousImage() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateImage();
+        }
+
+        window.onload = updateImage; // Initialize the first image on load
+    </script>
+</head>
+<body oncontextmenu="return false;">
+    <div id="ekran_baslangic">
+        <h1> DİLE YOLCULUK</h1>
+        <button type="button" onclick="previousImage();"> « </button>
+        <img id="imageDisplay" src="" alt="Image" style="cursor:pointer;">
+        <button type="button" onclick="nextImage();"> » </button>
+        <br>
+        <label class="ackapa">
+            <input id="suruklebirak" type="checkbox" checked="" style="opacity:0;width:0px;height:0px;">
+            <span class="kayannokta"></span>
+        </label>
+        <br>
+        <pre align="left" style="color:white;text-weight:bold;">
+            Oyun Hakkında
+            -Oyunu başlatmadan önce yukarıdaki dillerden birini seçiniz
+            -Oyun harfleri sürükleyip yer değiştirerek oynanır ve temel amaç verilen harflerle kategoriye uygun kelimeler üretmektir
+            -Sürükle-Bırak özelliği çalışmadığında iptal ederek diğer yöntemi deneyiniz.
+            -Sıra size geldiğinde verilen harfi alabilir veya ortadan yeni bir harf çekebilirsiniz
+            -İhtiyacınız olmayan harfi diğer kullanıcıya vererek oyunun devam etmesi sağlayabilirsiniz
+            -Oyunda rakip olarak üç adet otonom oyuncunun olduğunu unutmayınız. 
+        </pre>
+    </div>
+</body>
+</html>

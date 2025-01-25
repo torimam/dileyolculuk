@@ -1,0 +1,919 @@
+<html lang="tr">
+<head>
+	<meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-title" content="KelimeCraft">
+	<title>DİLE YOLCULUK</title>
+    <link rel="apple-touch-icon" type="image/png" href="./src/logo.png">
+    <link rel="shortcut icon" type="image/x-icon" href="./src/logo.png">
+    <link rel="mask-icon" type="image/x-icon" href="./src/logo.png" color="#111">
+	<link rel="stylesheet" href="./src/styles.css">
+	<script language=JavaScript>
+		var kurallar=['özeleğitim','ilkokul','ortaokul'];
+		var temalar=['tahta','duvar_1','duvar_2'];
+		var aktifkural=0;
+		var aktiftema=0;		
+		var joker='*';
+		var aktifoyuncu=0;  
+   </script>
+<body oncontextmenu="return false;">
+	<div id="ekran_bekleme" style="display: none;">
+		<div id="ekran_bekleme_bilgi"> Yükleniyor...</div>
+	</div>
+
+	<div id="ekran_baslangic">
+		<h1> DİLE YOLCULUK</h1>
+		<button type="button" onclick="kuraldegistir(-1);"> « </button><img id="aktifkural" src="./src/kurallar/özeleğitim.png"><button type="button" onclick="kuraldegistir(1);"> » </button>
+		<br>
+		<label class="ackapa"><input id="suruklebirak" type="checkbox" checked="" style="opacity:0;width:0px;height:0px;"><span class="kayannokta"></span></label>
+		<br>
+		<pre align="left" style="color:white;text-weight:bold;">							
+		Lütfen seviye seçiniz.
+	
+		</pre>
+		<button type="button" onclick="oyun_yukle();">BAŞLAT</button>
+	</div>
+	
+	<div id="ekran_oyun">
+		<div class="grid" id="isteka_0">
+		</div>
+		<div class="grid-item tas_normal" id="yuva_havuz" draggable="true" onclick="tikla_albirak(&quot;yuva_havuz&quot;);">🎁</div>
+		<div class="grid-item tas_normal" id="yuva_gelen" draggable="true" onclick="tikla_albirak(&quot;yuva_gelen&quot;);"></div>
+		<div id="yuva_fare"></div>
+		<div class="grid-item" id="yuva_giden" draggable="true" onclick="tikla_albirak(&quot;yuva_giden&quot;);"></div>
+		<button id="Anasayfa" type="button" onclick="oyunbitir(-1);">🏠</button> 
+		<button id="Temadegistir" type="button" onclick="temadegistir(-1);">🎨</button>
+		<div id="anlambilgi"></div>
+		<div id="istekalar">
+			<div id="istekalar_aciklama">DİLE YOLCULUK</div>
+			<div class="isteka" id="isteka_1"></div>
+			<div class="isteka" id="isteka_2"></div>
+			<div class="isteka" id="isteka_3"></div>
+		</div>
+	</div>
+	<iframe src="" name="raporformu" width="0" height="0" frameborder="0" style="display:'none';"></iframe>	
+
+
+<script src="./src/sozluk.js" defer=""></script>
+<script language="javascript">
+
+
+function kuraldegistir(deger){
+	aktifkural=(aktifkural+kurallar.length+deger)%kurallar.length;
+	document.getElementById('aktifkural').src="./src/kurallar/"+kurallar[aktifkural]+".png";
+	kuralyukleyici.setAttribute("src", "./src/kurallar/"+kurallar[aktifkural]+".js");
+}
+
+function temadegistir(tema){
+	if(tema==-1){
+		aktiftema=(aktiftema+temalar.length+1)%temalar.length;
+	}
+	else{
+		aktiftema=tema;
+	}
+	temayukleyici.setAttribute("href", "./src/temalar/"+temalar[aktiftema]+"/styles.css");
+	document.head.appendChild(temayukleyici);
+}
+
+function tuskontrol(e){
+	//https://stackoverflow.com/questions/424407/handling-key-press-events-f1-f12-using-javascript-and-jquery-cross-browser
+	if(typeof window.event!="undefined"){
+		e=window.event;
+	}
+	if(e.type=="keypress" && (e.keyCode==105 || e.charCode==105 )){
+		if(document.getElementById('istekalar').style.visibility != 'visible'){
+			document.getElementById('istekalar').style.visibility = 'visible';
+		}
+		else{
+			document.getElementById('istekalar').style.visibility = 'hidden';
+		}
+	}
+}
+		
+function karistir(dizi){
+	yenidizi=[];
+	while(dizi.length>0){
+		rastgeleindis=Math.floor(Math.random() * dizi.length);
+		yenidizi.push(dizi[rastgeleindis]);
+		dizi.splice(rastgeleindis, 1);
+	}
+	return yenidizi;
+}
+
+function havuzdan_al(){
+	if(havuzkaristir==1 && oyunsirasi!=""){havuz=karistir(havuz);}
+	karakter=havuz[0];
+	havuz.splice(0,1);
+	return karakter;
+}
+
+function havuza_ver(verilentas){
+	if(tasdongusu==1 && verilentas!=""){
+		havuz.push(verilentas);
+	}
+}
+
+function kontrol_kelime(karakterdizisi){
+	let karakterozellikleri;
+	let i=0;
+	let siradakikelime_tur="";
+	if(karakterdizisi.length>=enkisa_kelime_uzunlugu){
+		if(karakterdizisi.indexOf(joker)> -1){
+			const duzenliifade = new RegExp("^" + karakterdizisi.replaceAll(joker,".") + "$");
+			for(const [siradakikelime, anlam] of Object.entries(sozluk)){
+				if(duzenliifade.test(siradakikelime)){
+					let i=0;
+					let siradakikelime_tur="";
+					sozluk[siradakikelime].forEach((karakterozellikleri) => {
+						if(i==0){
+							siradakikelime_tur+=karakterozellikleri;
+						}
+						i++;
+						i=i%2;
+					});
+					if(kelimefiltre=="*" || siradakikelime_tur.indexOf(kelimefiltre)>-1){
+						return siradakikelime;
+						break;
+					}
+				}
+			}
+		}
+		else{
+			if(sozluk[karakterdizisi]){
+				sozluk[karakterdizisi].forEach((karakterozellikleri) => {
+					if(i==0){
+						siradakikelime_tur+=karakterozellikleri;
+					}
+					i++;
+					i=i%2;
+				});
+				if(kelimefiltre=="*" || siradakikelime_tur.indexOf(kelimefiltre)>-1){			
+					return karakterdizisi;
+				}
+			}
+		}	
+	}
+}
+
+function anlamgoster(secilioyuncu){
+	let p=0;
+	let parcacik;
+	let icerik;
+	let kayit=0;
+	
+	document.getElementById("anlambilgi").innerHTML="";
+	oyuncu[secilioyuncu]['kelimeler'].forEach((kelime)=>{
+		if(kelime.indexOf(joker) > -1 && jokerliyide_acikla==1){
+			kelime=kontrol_kelime(kelime);
+		}
+		if(kelime.indexOf(joker) == -1){
+			icerik="<dl class='kelimebilgi'><div id='anlambaslik'>"+kelime+"</div>\n";
+			sozluk[kelime].forEach((kelimeicerik) => {
+				if(kayit%2==0){icerik+="<dd>"+kelimeicerik.toLocaleUpperCase('TR')+"</dd>\n";}
+				if(kayit%2==1){
+					icerik+="<dt>";
+					kelimeicerik.split("_").forEach((parcacik) => {
+						if(p==1){icerik+='<br><br><u>Örnek:</u>';}
+						if(p>0){icerik+='<br>"';}
+						icerik+=parcacik;
+						if(p>0){icerik+='"';}
+						p++;
+					});
+					icerik+="</dt>\n";
+				}
+				kayit++;
+				kayit=kayit%2;
+				p=0;
+			});
+			icerik+="</dl>\n";
+			document.getElementById("anlambilgi").innerHTML+=icerik;
+		}
+	});
+	if(document.getElementById("anlambilgi").innerHTML==""){
+		document.getElementById("anlambilgi").style.display="none";
+	}
+	else{
+		aktifanlam=0;
+		anlamsure=0;
+		document.getElementById("anlambilgi").style.display="block";
+	}
+}
+
+function guncelle_isteka(secilioyuncu){
+	let i;
+	let k;
+	let gecicikelime=[];
+		gecicikelime['tasduzeni']=[];
+		gecicikelime['harfkonum']=[];
+	let oncekikarakter="";
+	let bulunankelime;
+	let kayit=0;
+
+	oyuncu[secilioyuncu]['puan']=0;
+	oyuncu[secilioyuncu]['kelimeler']=[];
+
+	for(i=0;i<yuva_sayisi;i++){
+		document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).innerHTML=oyuncu[secilioyuncu]['tasduzeni'][i];
+		if(oyuncu[secilioyuncu]['tasduzeni'][i]==" "){oyuncu[secilioyuncu]['tasduzeni'][i]="";}
+		if(oyuncu[secilioyuncu]['tasduzeni'][i]==""){
+			if(document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).className.indexOf("tas_kelime")>0){document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).classList.toggle("tas_kelime");}
+			if(document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).className.indexOf("tas_normal")>0){document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).classList.toggle("tas_normal");}
+		}
+		else{
+			if(document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).className.indexOf("tas_kelime")>0){document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).classList.toggle("tas_kelime");}
+			if(document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).className.indexOf("tas_normal") == -1){document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).classList.toggle("tas_normal");}
+		}
+	}
+
+	for(i=0;i<yuva_sayisi;i++){
+		if(oyuncu[secilioyuncu]['tasduzeni'][i]!=""){
+			gecicikelime['tasduzeni'].push(oyuncu[secilioyuncu]['tasduzeni'][i]);
+			gecicikelime['harfkonum'].push(i);
+			oncekikarakter=oyuncu[secilioyuncu]['tasduzeni'][i];
+		}
+
+		if((oyuncu[secilioyuncu]['tasduzeni'][i]=="" && oncekikarakter!="")|| i==(yuva_sayisi-1) || satirsonlari.indexOf(i)>-1){
+			bulunankelime=kontrol_kelime(gecicikelime['tasduzeni'].join(""));
+			if(typeof bulunankelime != 'undefined'){
+				for(k=0;k<gecicikelime['tasduzeni'].length;k++){
+					if(document.getElementById('isteka_'+secilioyuncu+'_yuva_'+gecicikelime['harfkonum'][k]).className.indexOf("tas_normal")>0){document.getElementById('isteka_'+secilioyuncu+'_yuva_'+gecicikelime['harfkonum'][k]).classList.toggle("tas_normal");}						
+					if(document.getElementById('isteka_'+secilioyuncu+'_yuva_'+gecicikelime['harfkonum'][k]).className.indexOf("tas_kelime") == -1){document.getElementById('isteka_'+secilioyuncu+'_yuva_'+gecicikelime['harfkonum'][k]).classList.toggle("tas_kelime");}
+
+					if(gecicikelime['tasduzeni'][k]!=joker){
+						if(ivmeli_puan==1){
+							oyuncu[secilioyuncu]['puan']+=(k+1);
+						}
+						else{
+							oyuncu[secilioyuncu]['puan']+=1;
+						}
+					}
+					else{
+						oyuncu[secilioyuncu]['puan']+=joker_puan;
+					}
+				}
+				oyuncu[secilioyuncu]['kelimeler'].push(gecicikelime['tasduzeni'].join(""));
+			}
+
+			gecicikelime=[];
+			gecicikelime['tasduzeni']=[];
+			gecicikelime['harfkonum']=[];
+			oncekikarakter="";
+		}
+	}
+}
+
+function guncelle_tasduzeni(secilioyuncu){
+	let i;
+	for(i=0;i<yuva_sayisi;i++){
+		oyuncu[secilioyuncu]['tasduzeni'][i]=document.getElementById('isteka_'+secilioyuncu+'_yuva_'+i).innerHTML;
+	}
+}
+
+function anlamkaydir(){
+	if(document.getElementsByClassName("kelimebilgi").length>0){
+		let i;
+		let slides = document.getElementsByClassName("kelimebilgi");
+		for (i = 0; i < slides.length; i++) {
+			slides[i].style.display = "none"; 
+		}
+		aktifanlam = aktifanlam%slides.length;   
+		slides[aktifanlam].style.display = "block";
+		anlamsure=anlamsure+1;
+		anlamsure=anlamsure%5;
+		if(anlamsure==4){
+			slides[aktifanlam].scrollTop=0;
+			aktifanlam++;
+		}
+	}
+	else{
+	}
+
+	setTimeout(anlamkaydir, 1000);
+}
+
+function kelimeuret(karakterler){
+	iyi["duzen"]="";
+	iyi["artan"]="";
+	iyi["derece"]=0;
+	
+	let iyi1=[];
+	let iyi2=[];
+
+	let harf;
+	let	gecici=[];
+	let i;
+	let jokerharfsayisi;
+
+	iyi1["duzen"]="";
+	iyi1["artan"]=karakterler;
+	iyi1["derece"]=0;
+	jokerharfsayisi = iyi1["artan"].split(joker).length - 1;
+	for (let [kelime, anlam] of Object.entries(sozluk)) {
+		gecici['tasduzeni']=iyi1["artan"];
+		gecici['jokersayisi']=0;
+		gecici['derece']=0;
+		gecici['tur']="";i=0;anlam.forEach((karakterozellikleri) => {if(i==0){gecici['tur']+=karakterozellikleri;}i++;i=i%2;});
+		if(kelime.length>=enkisa_kelime_uzunlugu && kelime.length<=kullanici_harf_sayisi && (kelimefiltre=="*" || gecici['tur'].indexOf(kelimefiltre)>-1)){
+			for(i=0;i<kelime.length;i++){
+				harf=kelime[i];
+				if(gecici['tasduzeni'].indexOf(harf)==-1){
+					if(gecici['tasduzeni'].indexOf(joker)>-1){
+						gecici['tasduzeni']=gecici['tasduzeni'].substring(0, gecici['tasduzeni'].indexOf(joker)) + gecici['tasduzeni'].substring( gecici['tasduzeni'].indexOf(joker) + 1, gecici['tasduzeni'].length);
+						kelime=kelime.substring(0,i)+joker+kelime.substring((i+1),kelime.length);
+					}
+					gecici['jokersayisi']+=1;
+					if(kazanma_puani>0){
+						gecici['derece']+=joker_puan;
+					}
+				}
+				else{
+					harfkonum=gecici['tasduzeni'].indexOf(harf);
+					gecici['tasduzeni']=gecici['tasduzeni'].substring(0, harfkonum) + gecici['tasduzeni'].substring( harfkonum + 1, gecici['tasduzeni'].length);
+					if(kazanma_puani>0){
+						if(ivmeli_puan==1){
+							gecici['derece']+=(i+1);
+						}
+						else{
+							gecici['derece']+=1;
+						}
+					}
+				}
+			}
+			if(gecici['jokersayisi']<=jokerharfsayisi ){
+				if(kazanma_puani>0 && gecici['derece']>iyi1["derece"]){
+					iyi1['derece']=gecici['derece'];
+					iyi1['duzen']=kelime;
+					iyi1["artan"]=gecici['tasduzeni'];
+				}
+
+				if(kazanma_puani<=0 && kelime.length>iyi1["derece"]){
+					iyi1['derece']=kelime.length;
+					iyi1['duzen']=kelime;
+					iyi1["artan"]=gecici['tasduzeni'];							
+				}
+			}
+		}
+	}
+
+	iyi2["duzen"]="";
+	iyi2["artan"]=iyi1['artan'];
+	iyi2["derece"]=0;		
+	jokerharfsayisi = iyi2['artan'].split(joker).length - 1;
+	for (let [kelime, anlam] of Object.entries(sozluk)){
+		gecici['tasduzeni']=iyi2['artan'];
+		gecici['jokersayisi']=0;
+		gecici['derece']=0;
+		gecici['tur']="";i=0;anlam.forEach((karakterozellikleri) => {if(i==0){gecici['tur']+=karakterozellikleri;}i++;i=i%2;});
+
+		if(kelime.length>=enkisa_kelime_uzunlugu && (iyi1['duzen'].length+kelime.length)<=kullanici_harf_sayisi && (kelimefiltre=="*" || gecici['tur'].indexOf(kelimefiltre)>-1)){	
+			for(i=0;i<kelime.length;i++){
+				harf=kelime[i];
+				if(gecici['tasduzeni'].indexOf(harf)==-1){
+					if(gecici['tasduzeni'].indexOf(joker)>-1){
+						gecici['tasduzeni']=gecici['tasduzeni'].substring(0, gecici['tasduzeni'].indexOf(joker)) + gecici['tasduzeni'].substring( gecici['tasduzeni'].indexOf(joker) + 1, gecici['tasduzeni'].length);
+						kelime=kelime.substring(0,i)+joker+kelime.substring((i+1),kelime.length);
+					}
+					gecici['jokersayisi']+=1;
+					if(kazanma_puani>0){
+						gecici['derece']+=joker_puan;
+					}
+				}
+				else{
+					harfkonum=gecici['tasduzeni'].indexOf(harf);
+					gecici['tasduzeni']=gecici['tasduzeni'].substring(0, harfkonum) + gecici['tasduzeni'].substring( harfkonum + 1, gecici['tasduzeni'].length);
+					if(kazanma_puani>0){
+						if(ivmeli_puan==1){
+							gecici['derece']+=(i+1);
+						}
+						else{
+							gecici['derece']+=1;
+						}
+					}
+				}
+			}
+
+			if(gecici['jokersayisi']<=jokerharfsayisi ){
+				if(kazanma_puani>0 && gecici['derece']>iyi2["derece"]){
+					iyi2['derece']=gecici['derece'];
+					iyi2['duzen']=kelime;
+					iyi2["artan"]=gecici['tasduzeni'];
+				}
+
+				if(kazanma_puani<=0 && kelime.length>iyi2["derece"]){
+					iyi2['derece']=kelime.length;
+					iyi2['duzen']=kelime;
+					iyi2["artan"]=gecici['tasduzeni'];
+				}
+			}
+		}
+	}
+	iyi["duzen"]=iyi1['duzen']+" "+iyi2['duzen'];
+	iyi["artan"]=iyi2['artan'];
+	iyi["derece"]=iyi1['derece']+iyi2['derece'];
+}
+
+console.log("Bu uygulama Kırıkhan Bilim ve Sanat Merkezi Projelerine Destek Amacıyla BT Öğretmeni Abdulkadir BİLGİN tarafından hazırlanmıştır"); 
+
+function otonom(verilentas){
+	if(oyunbitti==0){
+		document.getElementById('ekran_bekleme').style.display = 'block';
+		
+		let i;
+		let sonbosluk;
+		let bosluktansonra;
+		let gecici;
+		let tasduzeni=oyuncu[oyunsirasi]['tasduzeni'].join("").replace(/ /g,'');
+		let rastgeleindis;
+		let verilecek;
+		let bironcekisatirsonu;
+		let havuzharfi;
+
+		if(oyuncu[oyunsirasi]['tip']=="a"){
+			document.getElementById('ekran_bekleme_bilgi').innerHTML=oyunsirasi+" numaralı oyuncu düşünüyor";
+			
+			if(yapayzeka==0){
+				if(tasduzeni.length==kullanici_harf_sayisi){
+					tasduzeni+=verilentas;
+				}
+				rastgeleindis=Math.floor(Math.random() * tasduzeni.length);
+				verilecek=tasduzeni[rastgeleindis];
+				tasduzeni=tasduzeni.substring(0, rastgeleindis) + tasduzeni.substring(rastgeleindis+1, tasduzeni.length);
+				oyuncu[oyunsirasi]['tasduzeni']=tasduzeni.split('');
+				while(oyuncu[oyunsirasi]['tasduzeni'].length<yuva_sayisi){oyuncu[oyunsirasi]['tasduzeni'].push("");}
+			}
+
+			if(yapayzeka==1){
+				if(tasduzeni.length==kullanici_harf_sayisi){
+					tasduzeni+=verilentas;
+				}
+				kelimeuret(tasduzeni);
+				tasduzeni=iyi['duzen']+" "+iyi['artan'];
+				
+				bironcekisatirsonu=0;
+				satirsonlari.forEach((satirsonu)=>{
+					if(tasduzeni[satirsonu]!=" " && tasduzeni[satirsonu+1]!=" "){
+						for(i=bironcekisatirsonu;i<=satirsonu;i++){
+							if(tasduzeni[i]==" "){
+								sonbosluk=i;
+								bosluktansonra=0;
+							}
+							else{
+								bosluktansonra++;
+							}
+						}
+						gecici=tasduzeni.substring(0, sonbosluk);
+						for(i=0;i<=bosluktansonra;i++){
+							gecici+=" ";
+						}
+						gecici+=tasduzeni.substring((sonbosluk+1), tasduzeni.length);
+						tasduzeni=gecici;
+					}
+					bironcekisatirsonu=satirsonu;
+				});
+				for(i=tasduzeni.length;i<yuva_sayisi;i++){
+					tasduzeni+=" ";
+				}
+				rastgeleindis=tasduzeni.indexOf(" ");
+				while(tasduzeni[rastgeleindis]==" "){
+					rastgeleindis=Math.floor(Math.random() * tasduzeni.length);
+				}
+				verilecek=tasduzeni[rastgeleindis];
+				tasduzeni=tasduzeni.substring(0, rastgeleindis) + " " + tasduzeni.substring(rastgeleindis+1, tasduzeni.length);
+				oyuncu[oyunsirasi]['tasduzeni']=tasduzeni.split('');
+			}
+
+			if(yapayzeka==2){
+				if(tasduzeni.length==kullanici_harf_sayisi){
+					tasduzeni+=verilentas;
+				}
+				kelimeuret(tasduzeni);
+				iyi['artan'].split("").forEach((karakter)=>{
+					if(verilecek=="" || harfler_istatistik.indexOf(karakter)>harfler_istatistik.indexOf(verilecek)){
+						verilecek=karakter;
+					}
+				});
+				tasduzeni=iyi['duzen']+" "+iyi['artan'].substring(0, (iyi['artan'].indexOf(verilecek))) + iyi['artan'].substring((iyi['artan'].indexOf(verilecek)+1), iyi['artan'].length);
+				bironcekisatirsonu=0;
+				satirsonlari.forEach((satirsonu)=>{
+					if(tasduzeni[satirsonu]!=" " && tasduzeni[satirsonu+1]!=" "){
+						for(i=bironcekisatirsonu;i<=satirsonu;i++){
+							if(tasduzeni[i]==" "){
+								sonbosluk=i;
+								bosluktansonra=0;
+							}
+							else{
+								bosluktansonra++;
+							}
+						}
+						gecici=tasduzeni.substring(0, sonbosluk);
+						for(i=0;i<=bosluktansonra;i++){
+							gecici+=" ";
+						}
+						gecici+=tasduzeni.substring((sonbosluk+1), tasduzeni.length);
+						tasduzeni=gecici;
+					}
+					bironcekisatirsonu=satirsonu;
+				});
+				for(i=tasduzeni.length;i<yuva_sayisi;i++){
+					tasduzeni+=" ";
+				}
+				oyuncu[oyunsirasi]['tasduzeni']=tasduzeni.split('');
+			}
+			
+			if(yapayzeka==3){
+				rastgeleindis=Math.floor(Math.random() * tasduzeni.length);
+				verilecek=tasduzeni[rastgeleindis];
+				tasduzeni=tasduzeni.substring(0, rastgeleindis) + tasduzeni.substring(rastgeleindis+1, tasduzeni.length);
+				if(tasduzeni.length==kullanici_harf_sayisi-1){
+					kelimeuret(tasduzeni+verilentas);
+					if(iyi['artan'].indexOf(verilentas)>-1){
+						havuzharfi=havuzdan_al();
+						tasduzeni+=havuzharfi;
+						kelimeuret(tasduzeni);
+					}
+					else{
+						tasduzeni+=verilentas;
+					}
+				}
+				else{
+					kelimeuret(tasduzeni);
+				}
+				tasduzeni=iyi['duzen']+" "+iyi['artan'];
+				bironcekisatirsonu=0;
+				satirsonlari.forEach((satirsonu)=>{
+					if(tasduzeni[satirsonu]!=" " && tasduzeni[satirsonu+1]!=" "){
+						for(i=bironcekisatirsonu;i<=satirsonu;i++){
+							if(tasduzeni[i]==" "){
+								sonbosluk=i;
+								bosluktansonra=0;
+							}
+							else{
+								bosluktansonra++;
+							}
+						}
+						gecici=tasduzeni.substring(0, sonbosluk);
+						for(i=0;i<=bosluktansonra;i++){
+							gecici+=" ";
+						}
+						gecici+=tasduzeni.substring((sonbosluk+1), tasduzeni.length);
+						tasduzeni=gecici;
+					}
+					bironcekisatirsonu=satirsonu;
+				});
+				for(i=tasduzeni.length;i<yuva_sayisi;i++){
+					tasduzeni+=" ";
+				}
+				oyuncu[oyunsirasi]['tasduzeni']=tasduzeni.split('');
+			}
+
+			if(yapayzeka==4){
+				if(tasduzeni.length==kullanici_harf_sayisi){
+					kelimeuret(tasduzeni+verilentas);
+					if(iyi['artan'].indexOf(verilentas)>-1){
+						havuzharfi=havuzdan_al();
+						tasduzeni+=havuzharfi;
+						kelimeuret(tasduzeni);
+					}
+					else{
+						tasduzeni+=verilentas;
+					}
+				}
+				else{
+					kelimeuret(tasduzeni);
+				}
+
+				iyi['artan'].split("").forEach((karakter)=>{
+					if(verilecek=="" || harfler_istatistik.indexOf(karakter)>harfler_istatistik.indexOf(verilecek)){
+						verilecek=karakter;
+					}
+				});
+
+				tasduzeni=iyi['duzen']+" "+iyi['artan'].substring(0, (iyi['artan'].indexOf(verilecek))) + iyi['artan'].substring((iyi['artan'].indexOf(verilecek)+1), iyi['artan'].length);
+
+				bironcekisatirsonu=0;
+				satirsonlari.forEach((satirsonu)=>{
+					if(tasduzeni[satirsonu]!=" " && tasduzeni[satirsonu+1]!=" "){
+						for(i=bironcekisatirsonu;i<=satirsonu;i++){
+							if(tasduzeni[i]==" "){
+								sonbosluk=i;
+								bosluktansonra=0;
+							}
+							else{
+								bosluktansonra++;
+							}
+						}
+						gecici=tasduzeni.substring(0, sonbosluk);
+						for(i=0;i<=bosluktansonra;i++){
+							gecici+=" ";
+						}
+						gecici+=tasduzeni.substring((sonbosluk+1), tasduzeni.length);
+						tasduzeni=gecici;
+					}
+					bironcekisatirsonu=satirsonu;
+				});
+				for(i=tasduzeni.length;i<yuva_sayisi;i++){
+					tasduzeni+=" ";
+				}
+				oyuncu[oyunsirasi]['tasduzeni']=tasduzeni.split('');
+			}
+			guncelle_isteka(oyunsirasi);
+			oyun_bitermi();
+			oyunsirasi++;
+			oyunsirasi=oyunsirasi%4;
+			otonom(verilecek);
+		}
+		else{
+			setTimeout(() => {document.getElementById('ekran_bekleme').style.display = 'none';}, 200);
+			document.getElementById('yuva_gelen').innerHTML=verilentas;
+			document.getElementById('yuva_gelen').style.visibility = 'visible';
+			document.getElementById('yuva_havuz').style.visibility = 'visible';
+		}
+	}
+}
+
+function oyun_yukle(){
+	document.head.appendChild(temayukleyici);
+	document.head.appendChild(kuralyukleyici);
+}
+
+function oyun_baslat(){
+	let i;
+	let secilioyuncu;
+
+	oyuncu=[];
+	oyuncu[0]=[]; oyuncu[0]['tasduzeni']=[]; oyuncu[0]['kelimeler']=[]; oyuncu[0]['puan']=0; oyuncu[0]['tip']="l";
+	oyuncu[1]=[]; oyuncu[1]['tasduzeni']=[]; oyuncu[1]['kelimeler']=[]; oyuncu[1]['puan']=0; oyuncu[1]['tip']="a";
+	oyuncu[2]=[]; oyuncu[2]['tasduzeni']=[]; oyuncu[2]['kelimeler']=[]; oyuncu[2]['puan']=0; oyuncu[2]['tip']="a";
+	oyuncu[3]=[]; oyuncu[3]['tasduzeni']=[]; oyuncu[3]['kelimeler']=[]; oyuncu[3]['puan']=0; oyuncu[3]['tip']="a";
+
+	oyuncu[aktifoyuncu]['tip']="l";
+
+	document.getElementById('isteka_0').innerHTML="";
+	document.getElementById('isteka_1').innerHTML="";
+	document.getElementById('isteka_2').innerHTML="";
+	document.getElementById('isteka_3').innerHTML="";
+
+	for(i=0;i<yuva_sayisi;i++){
+		document.getElementById('isteka_0').innerHTML+="<div class='grid-item' id='isteka_0_yuva_"+i+"' draggable='true' onclick=tikla_albirak(this.id);></div>\n";
+		document.getElementById('isteka_1').innerHTML+="<div class='yuva' id='isteka_1_yuva_"+i+"'></div>\n";
+		document.getElementById('isteka_2').innerHTML+="<div class='yuva' id='isteka_2_yuva_"+i+"'></div>\n";
+		document.getElementById('isteka_3').innerHTML+="<div class='yuva' id='isteka_3_yuva_"+i+"'></div>\n";
+	}
+
+	for(i=1;i<=havuz_joker;i++){havuz.push(joker);}
+
+	if(rastlantisal_harfler==1){havuz=karistir(havuz);}
+
+	for(secilioyuncu=0;secilioyuncu<=3;secilioyuncu++){
+		for(i=1;i<=(yuva_sayisi-kullanici_harf_sayisi);i++){
+			oyuncu[secilioyuncu]['tasduzeni'].push('');
+		}
+		for(i=1;i<=(kullanici_harf_sayisi-kullanici_joker);i++){
+			oyuncu[secilioyuncu]['tasduzeni'].push(havuzdan_al());
+		}
+		for(i=1;i<=kullanici_joker;i++){
+			oyuncu[secilioyuncu]['tasduzeni'].push(joker);
+		}
+
+		if(sirali_harfler==0){oyuncu[secilioyuncu]['tasduzeni']=karistir(oyuncu[secilioyuncu]['tasduzeni']);}
+
+		guncelle_isteka(secilioyuncu);
+	}
+	if(document.getElementById('suruklebirak').checked==true){
+		suruklebirakyukleyici = document.createElement("script");
+		suruklebirakyukleyici.setAttribute("src", "./src/touch.js");
+		document.head.appendChild(suruklebirakyukleyici);
+	}
+	
+	anlamgoster(aktifoyuncu);
+	anlamkaydir();
+	
+	if(oyunsirasi==""){
+		oyunsirasi=0;
+		if(rastlantisal_oyuncu==1){oyunsirasi=Math.floor(Math.random() * 4);}
+		oyuncu[oyunsirasi]['tasduzeni'][oyuncu[oyunsirasi]['tasduzeni'].lastIndexOf("")]=havuzdan_al();
+		guncelle_isteka(oyunsirasi);
+	}
+	
+	
+	document.addEventListener('mousemove', function(e){
+			document.getElementById('yuva_fare').style.left =  e.clientX - (document.getElementById('yuva_fare').clientHeight/2) + 'px';
+			document.getElementById('yuva_fare').style.top = e.clientY-(document.getElementById('yuva_fare').clientHeight+10) + 'px';
+	});	
+	
+	
+	if(document.addEventListener){ //code for Moz
+		document.addEventListener("keydown",tuskontrol,false); 
+		document.addEventListener("keyup",tuskontrol,false);
+		document.addEventListener("keypress",tuskontrol,false);
+	}
+	else{
+		document.attachEvent("onkeydown",tuskontrol); //code for IE
+		document.attachEvent("onkeyup",tuskontrol); 
+		document.attachEvent("onkeypress",tuskontrol); 
+	}	
+	
+	setTimeout(() => { 
+		satirsonlari=[];
+		let oncekisatir_top=document.getElementById('isteka_0_yuva_0').offsetTop;
+		for(i=0;i<yuva_sayisi;i++){
+			if(document.getElementById('isteka_0_yuva_'+i).offsetTop!=oncekisatir_top){
+				satirsonlari.push(i-1);
+				oncekisatir_top=document.getElementById('isteka_0_yuva_'+i).offsetTop;
+			}
+		}
+	}, 1000);
+
+	document.getElementById('ekran_baslangic').style.display = 'none';
+
+
+
+	if(oyuncu[oyunsirasi]['tip']=="a"){
+		otonom(oyunsirasi,"");
+	}
+	if(oyuncu[oyunsirasi]['tip']=="l" && oyuncu[oyunsirasi]['tasduzeni'].join('').length>kullanici_harf_sayisi){
+		document.getElementById('yuva_giden').style.visibility = 'visible';
+	}	
+}
+
+
+
+
+function tikla_albirak(nesne){
+	if(document.getElementById('suruklebirak').checked==false){
+		if(tikla_albirak_durum==""){
+			tikla_albirak_durum=nesne;
+			document.getElementById(nesne).style.visibility='hidden';
+			document.getElementById('yuva_fare').innerHTML=document.getElementById(nesne).innerHTML;
+			document.getElementById('yuva_fare').style.visibility='visible';		
+		}
+		else{
+			tasoynat(tikla_albirak_durum,nesne);
+			document.getElementById(nesne).style.visibility='visible';
+			document.getElementById('yuva_fare').style.visibility='hidden';
+			tikla_albirak_durum="";
+		}
+	}
+}
+
+function tasoynat(kaynak,hedef){
+	if(tikla_albirak_durum!=""){
+		document.getElementById(tikla_albirak_durum).style.visibility="visible";
+		tikla_albirak_durum="";
+		document.getElementById("yuva_fare").innerHTML="";		
+		document.getElementById("yuva_fare").style.visibility="hidden";
+	}
+	if(oyunbitti==0){
+		let gecici;
+		if(hedef==""){
+			hedef="isteka_"+oyunsirasi+"_yuva_"+oyuncu[oyunsirasi]['tasduzeni'].lastIndexOf("");
+		}
+		if(kaynak=="yuva_gelen" && hedef.indexOf("isteka_"+aktifoyuncu)>-1 && document.getElementById(hedef).innerHTML==""){
+			document.getElementById(hedef).innerHTML=document.getElementById(kaynak).innerHTML;
+			document.getElementById('yuva_gelen').innerHTML="";
+			document.getElementById('yuva_gelen').style.visibility = 'hidden';
+			document.getElementById('yuva_havuz').style.visibility = 'hidden';
+			guncelle_tasduzeni(aktifoyuncu);
+			guncelle_isteka(aktifoyuncu);
+			anlamgoster(aktifoyuncu);
+			if(oyuncu[oyunsirasi]['tasduzeni'].join('').length>kullanici_harf_sayisi){
+				document.getElementById('yuva_giden').style.visibility = 'visible';
+			}
+		}
+		if(kaynak=="yuva_havuz" && hedef.indexOf("isteka_"+aktifoyuncu)>-1 && document.getElementById(hedef).innerHTML==""){
+			document.getElementById(hedef).innerHTML=havuzdan_al();;
+			havuza_ver(document.getElementById('yuva_gelen').innerHTML);
+			document.getElementById('yuva_gelen').innerHTML=""
+			document.getElementById('yuva_gelen').style.visibility = 'hidden';
+			document.getElementById('yuva_havuz').style.visibility = 'hidden';
+			guncelle_tasduzeni(aktifoyuncu);
+			guncelle_isteka(aktifoyuncu);
+			anlamgoster(aktifoyuncu);
+			if(oyuncu[oyunsirasi]['tasduzeni'].join('').length>kullanici_harf_sayisi){
+				document.getElementById('yuva_giden').style.visibility = 'visible';
+			}
+		}
+		if(kaynak.indexOf("isteka_"+aktifoyuncu)>-1 && hedef.indexOf("isteka_"+aktifoyuncu)>-1 ){
+			gecici=document.getElementById(hedef).innerHTML;
+			document.getElementById(hedef).innerHTML=document.getElementById(kaynak).innerHTML;
+			document.getElementById(kaynak).innerHTML=gecici;
+			guncelle_tasduzeni(aktifoyuncu);
+			guncelle_isteka(aktifoyuncu);
+			anlamgoster(aktifoyuncu);
+		}
+		if(kaynak.indexOf("isteka_"+aktifoyuncu)>-1 && hedef=="yuva_giden" && document.getElementById(kaynak).innerHTML!=""){
+			gecici=document.getElementById(kaynak).innerHTML;
+			document.getElementById(kaynak).innerHTML="";
+			document.getElementById('yuva_giden').style.visibility = 'hidden';
+			guncelle_tasduzeni(aktifoyuncu);
+			guncelle_isteka(aktifoyuncu);
+			anlamgoster(aktifoyuncu);
+			
+			oyun_bitermi();
+			oyunsirasi++;
+			oyunsirasi=oyunsirasi%4;
+			otonom(gecici);
+		}
+	}
+}
+
+function oyun_bitermi(){
+	if(kazanma_puani>0 && oyuncu[oyunsirasi]['puan']>=kazanma_puani){
+	oyunbitir(oyunsirasi);
+	}
+	else{
+		karaktersayisi=0;
+		oyuncu[oyunsirasi]['kelimeler'].forEach((kelime)=>{karaktersayisi+=kelime.length;});
+		if((karaktersayisi-kullanici_harf_sayisi) >= kazanma_puani){
+			oyunbitir(oyunsirasi);
+		}
+	}
+}
+
+function oyunbitir(secilioyuncu){
+		let i;
+		oyunbitti=1;
+		document.getElementById("istekalar").style.visibility="visible";
+		document.getElementById('ekran_bekleme').style.display = "none";
+		document.getElementById("yuva_gelen").style.display="none";
+		document.getElementById("yuva_giden").style.display="none";
+		document.getElementById("yuva_havuz").style.display="none";
+		document.getElementById("Anasayfa").style.display="none";
+
+		rapor="https://docs.google.com/forms/d/e/1FAIpQLSfy8Y9w7uHtgnDSHIky80iv54FOTM7lMmScjeECNib7N-VbqA/formResponse?";
+		rapor+="usp=pp_url";
+		if(secilioyuncu>=0){
+			document.getElementById("isteka_0").style.filter="blur(2px) grayscale(100%)";
+			document.getElementById("isteka_1").style.filter="blur(2px) grayscale(100%)";
+			document.getElementById("isteka_2").style.filter="blur(2px) grayscale(100%)";
+			document.getElementById("isteka_3").style.filter="blur(2px) grayscale(100%)";
+			document.getElementById("isteka_"+secilioyuncu).style.filter="blur(0px) grayscale(0%) contrast(400%)";
+			document.getElementById('isteka_'+secilioyuncu).style.animation="vurgula 1s linear 0s infinite";
+
+
+			if(secilioyuncu==0){
+					document.getElementById("istekalar_aciklama").innerHTML="TEBRİKLER SİZ KAZANDINIZ";
+					rapor+="&entry.725925536="+"oyuncukazandi";
+				}
+
+				else{
+					anlamgoster(oyunsirasi);
+					document.getElementById("istekalar_aciklama").innerHTML="ÜZGÜNÜM OYUNU " + oyunsirasi + " NUMARALI OYUNCU KAZANDI";
+					rapor+="&entry.725925536="+"otonomkazandi";
+				}
+		}
+		else{
+			document.getElementById("istekalar_aciklama").innerHTML="OYUN TAMAMLANMADAN ÇIKILDI";
+			rapor+="&entry.725925536="+"tamamlanmadi";
+			
+			let yuksekpuan=0
+			for(i=0;i<4;i++){
+				if(oyuncu[i]['puan']>=yuksekpuan){
+					secilioyuncu=i;
+				}
+			}
+		}
+		
+		if(oyuncu[secilioyuncu]['kelimeler'].length>0 || oyuncu[aktifoyuncu]['kelimeler'].length>0){
+			rapor+="&entry.1204649770="+aktifkural;
+			rapor+="&entry.1923134103="+oyuncu[aktifoyuncu]['tasduzeni'].join("+");
+			rapor+="&entry.986895757="+oyuncu[aktifoyuncu]['kelimeler'].join("+");
+			rapor+="&entry.1118952596="+oyuncu[aktifoyuncu]['puan'];
+			rapor+="&entry.1771477018="+oyuncu[secilioyuncu]['kelimeler'].join("+");
+			rapor+="&entry.1553956668="+oyuncu[secilioyuncu]['puan'];
+			rapor+="&submit=Submit";
+			
+			let raporyolla = document.createElement('a');
+			raporyolla.target="raporformu";
+			raporyolla.href = rapor;
+			document.body.appendChild(raporyolla);
+			raporyolla.click();
+			document.body.removeChild(raporyolla);
+		}
+		setTimeout(() => {location.reload();}, 10000);
+}
+	
+	
+</script>
+<script>
+	var aktifanlam=0;
+	var oyunsirasi="";
+	var anlamsure=0;
+	var oyuncu=[];
+	var satirsonlari=[];
+	var iyi=[];
+	var harfler_istatistik=['A','E','K','O','L','M','R','N','T','I','S','U','Y','D','X','B','W','Z','G','P','H','C','V','Q','F','J'];
+	var oyunbitti=0;
+	var rapor="";
+	var raporurl = 'https://docs.google.com/forms/d/e/1FAIpQLSfy8Y9w7uHtgnDSHIky80iv54FOTM7lMmScjeECNib7N-VbqA/formResponse?';		
+	var raporlayici = new XMLHttpRequest();
+	var tikla_albirak_durum="";
+	var kuralyukleyici = document.createElement("script");
+		kuralyukleyici.setAttribute("src", "./src/kurallar/"+kurallar[aktifkural]+".js");
+		document.getElementById('aktifkural').src="./src/kurallar/"+kurallar[aktifkural]+".png";
+		
+	var temayukleyici = document.createElement("link");
+		temayukleyici.setAttribute("rel", "stylesheet");
+		temayukleyici.setAttribute("type", "text/css");
+		temayukleyici.setAttribute("id", "oyuntema");
+		temayukleyici.setAttribute("href", "./src/temalar/"+temalar[aktiftema]+"/styles.css");	
+</script></body></html>
